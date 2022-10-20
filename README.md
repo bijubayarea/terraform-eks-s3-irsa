@@ -1,10 +1,14 @@
 # Use S3 to test IRSA : IAM Role for pod Service account
 
-This repository creates the S3 bucket to test pod service account access to AWS S3 bucket.
-pod deployment is through ArgoCD in seperate git repo
+This repository creates the S3 bucket, IAM Roles, IAM policy and k8s service account to test pod service account access to AWS S3 bucket.
+pod deployment is direct via 'kubectl apply'
 
 # Overview
 With the latest release of EKS (1.13 and 1.14), AWS Kubernetes control plane comes with support for IAM roles for service accounts. This feature allows us to associate an IAM role with a Kubernetes service account. We can now provision temporary credentials and then provide AWS permissions to the containers in any pod that uses that service account. Furthermore, we no longer need to provide extended permissions to the worker node IAM role so that pods on that node can call AWS APIs.
+
+![1](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/authentication_authorization_flow.png)
+
+
 
 # Steps
 To configure EKS, OpenID Connect (OIDC) provider, IAM Roles and service accounts using Terraform
@@ -40,6 +44,7 @@ AWS IAM supports federated identities using OIDC. This feature allows us to auth
    - Create a cluster with eksctl or terraform and OIDC provider setup enabled. This feature works with EKS clusters 1.13 and above.
    - Create an IAM role defining access to the target AWS services, for example S3, and annotate a service account with said IAM role.
    - Finally, configure your pods by using the service account created in the previous step and assume the IAM role.
+   - Because the service account has an eks.amazonaws.com/role-arn annotation, the webhook injects the necessary environment variables (AWS_ROLE_ARN and AWS_WEB_IDENTITY_TOKEN_FILE) and sets up the aws-iam-token projected volume in the pod that the job supervises.
 
    ![2](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/irp-eks-setup-1024x1015.png)
    
@@ -84,6 +89,16 @@ Then run a terraform plan `terraform plan -var 'env=test' src/`
 If looks ok go ahead and run the apply `terraform apply -var 'env=test' src/`
 
 Answer with yes when asked if you want to apply. It will take a bit to provision the VPC, related resources, the EKS cluster and related resources. Once done you need to setup your local kubectl for access by running `aws eks update-kubeconfig --region us-west-2 --name aws-vpc` or `aws eks update-kubeconfig --region us-west-2 --name aws-vpc --role arn:aws:iam::<account_id>:role/<name>` with whatever role you used to create the cluster (defined in variables).
+
+## Config 
+
+![3](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/irsa-oidc.png)
+
+![4](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/Trusted Entities.png)
+
+
+![5](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/s3_policy.png)
+
 
 ## Kubernetes Testing
 To deploy the demo app to test IRSA ability run:
