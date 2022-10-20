@@ -28,6 +28,21 @@ The IAM roles for service accounts feature provides the following benefits:
 # IAM Roles for Service Accounts Technical Overview
 AWS IAM supports federated identities using OIDC. This feature allows us to authenticate AWS API calls with supported identity providers and receive a valid OIDC JSON web token (JWT). You can pass this token to the AWS STS AssumeRoleWithWebIdentity API operation and receive IAM temporary role credentials. Such credentials can be used to communicate with services likes Amazon S3 and DynamoDB.
 
+# AWS Documentation
+   link : https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/
+
+   Drilling further down into our solution: OIDC federation access allows you to assume IAM roles via the Secure Token Service (STS), enabling authentication with an OIDC provider, receiving a JSON Web Token (JWT), which in turn can be used to assume an IAM role. Kubernetes, on the other hand, can issue so-called projected service account tokens, which happen to be valid OIDC JWTs for pods. Our setup equips each pod with a cryptographically-signed token that can be verified by STS against the OIDC provider of your choice to establish the pod’s identity. Additionally, we’ve updated AWS SDKs with a new credential provider that calls sts:AssumeRoleWithWebIdentity, exchanging the Kubernetes-issued OIDC token for AWS role credentials.
+
+   The resulting solution is now available in EKS, where we manage the control plane and run the webhook responsible for injecting the necessary environment variables and projected volume. The solution is also available in a DIY Kubernetes setup on AWS; more on that option can be found below.
+
+   To benefit from the new IRSA feature the necessary steps, on a high level, are:
+
+   - Create a cluster with eksctl or terraform and OIDC provider setup enabled. This feature works with EKS clusters 1.13 and above.
+   - Create an IAM role defining access to the target AWS services, for example S3, and annotate a service account with said IAM role.
+   - Finally, configure your pods by using the service account created in the previous step and assume the IAM role.
+
+   ![2](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/irp-eks-setup-1024x1015.png)
+   
 # Background
 In Kubernetes version 1.12, support was added for a new ProjectedServiceAccountToken feature, which is an OIDC JSON web token that also contains the service account identity, and supports a configurable audience.
 
@@ -47,21 +62,21 @@ This repo is used to spin up EKS Cluster with SPOT EKS managed node group.
 ## Requirements
 
 To use this repo for demo purposes you will need the following.
-AWS Account (at least one, can do multiple)
-AWS IAM Credentials with admin purposes (for demo)
-AWS IAM Role with adminstrative privileges for Terraform to assume (multi-account setup)
-AWS S3 Bucket to hold state
-AWS cli installed and configured
-Kubectl installed
-Terraform 0.14.3 installed (I recommend using https://github.com/tfutils/tfenv)
-Basic knowledge of AWS IAM, and Kubernetes components.
+- AWS Account (at least one, can do multiple)
+- AWS IAM Credentials with admin purposes (for demo)
+- WS IAM Role with adminstrative privileges for Terraform to   assume (multi-account setup)
+- AWS S3 Bucket to hold state
+- Kubectl installed
+- Terraform 0.14.3 installed (I recommend using https://github.com/tfutils/tfenv)
+- Basic knowledge of AWS IAM, and Kubernetes components.
 
 ## To spin up
-Repo : 
-Add your roles, and account ID's to the variables.tf
-Add your pre-existing S3 State bucket to main.tf
+This Repo : https://github.com/bijubayarea/terraform-eks-s3-irsa
 
-Run `terraform init -backend-configs=env/test/backend.tfvars src/`
+- Add your roles, and account ID's to the variables.tf
+- Add your pre-existing S3 State bucket to main.tf
+
+- Run `terraform init src/`
 Which will initialize your workspace and pull any providers needed such as AWS and the Kubernetes providers.
 
 Then run a terraform plan `terraform plan -var 'env=test' src/`
@@ -77,7 +92,15 @@ if the dry run looks ok go ahead and apply it.
 `kubectl apply -f demo_irsa_app/`
 
 Once deployed you can describe the deployment, service account, etc and see how they are linked up.
-kubectl logs aws-cli-64597bcbbf-j6npn -c aws-cli
+
+
+```hcl
+      kubectl logs aws-cli-64597bcbbf-j6npn -c aws-cli
+      2022-10-19 22:46:38 bijubayarea-s3-irsa-backend
+      2022-10-19 15:35:07 bijubayarea-s3-remote-backend-deadbeef
+      2022-10-20 16:24:51 bijubayarea-s3-test 
+
+      ```
 
 You have now used Terraform to spin up a VPC, EKS Cluster, deployed a demo app that is using a service account to assume a IAM role and policy through OIDC. For more information please read up on IRSA here: https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/
 
