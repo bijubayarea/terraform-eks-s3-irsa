@@ -14,7 +14,7 @@ variable "cluster" {
 
 variable "create_namespace" {
   description = "Enables creating the namespace"
-  default     = false
+  default     = true
 }
 
 variable "create_serviceaccount" {

@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "s3_policy" {
 module "s3_policy_role" {
   source                = "../modules/eks_irsa"
   enable_irsa           = true
-  namespace             = "default"
+  namespace             = "irsa-s3-ns"
   serviceaccount        = "s3-policy"
   create_serviceaccount = true
   #cluster               = var.cluster_name

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aws-cli
-  namespace: default
+  namespace: irsa-s3-ns
   labels:
     app: aws-cli
 spec:
