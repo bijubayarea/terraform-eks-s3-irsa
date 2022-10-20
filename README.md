@@ -69,7 +69,7 @@ This repo is used to spin up EKS Cluster with SPOT EKS managed node group.
 To use this repo for demo purposes you will need the following.
 - AWS Account (at least one, can do multiple)
 - AWS IAM Credentials with admin purposes (for demo)
-- WS IAM Role with adminstrative privileges for Terraform to   assume (multi-account setup)
+- AWS IAM Role with adminstrative privileges for Terraform to   assume (multi-account setup)
 - AWS S3 Bucket to hold state
 - Kubectl installed
 - Terraform 0.14.3 installed (I recommend using https://github.com/tfutils/tfenv)
@@ -94,7 +94,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
 
 ![3](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/irsa-oidc.png)
 
-![4](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/Trusted Entities.png)
+![4](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/Trusted_Entities.png)
 
 
 ![5](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/s3_policy.png)
