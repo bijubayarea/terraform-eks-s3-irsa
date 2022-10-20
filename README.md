@@ -72,7 +72,7 @@ To use this repo for demo purposes you will need the following.
 - AWS IAM Role with adminstrative privileges for Terraform to   assume (multi-account setup)
 - AWS S3 Bucket to hold state
 - Kubectl installed
-- Terraform 0.14.3 installed (I recommend using https://github.com/tfutils/tfenv)
+- Terraform 0.14.3 installed 
 - Basic knowledge of AWS IAM, and Kubernetes components.
 
 ## To spin up
