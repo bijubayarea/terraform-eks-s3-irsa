@@ -128,7 +128,6 @@ Once deployed you can describe the deployment, service account, etc and see how 
 
       ```
 
-You have now used Terraform to spin up a VPC, EKS Cluster, deployed a demo app that is using a service account to assume a IAM role and policy through OIDC. For more information please read up on IRSA here: https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/
 
 ## Tear Down
 First empty your s3 bucket.
