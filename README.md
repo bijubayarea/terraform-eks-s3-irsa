@@ -75,6 +75,18 @@ To use this repo for demo purposes you will need the following.
 - Terraform 0.14.3 installed 
 - Basic knowledge of AWS IAM, and Kubernetes components.
 
+## STEPS
+    - github to spin up EKS cluster  (https://github.com/bijubayarea/test-terraform-eks-cluster)
+    - github to create  (https://github.com/bijubayarea/terraform-eks-s3-irsa)
+        - IAM role + trusted entity OIDC(EKS cluster's OIDC)
+        -  policy to access one S3 bucket 
+        -  role-policy attachment, 
+        -  create s3 bucket
+        -  create ns = irsa-s3-ns
+        -  create service account=s3-policy with IAM Role ARN
+        -  create deployment with ns/sa and read/write one S3 bucket.
+
+        
 ## To spin up
 This Repo : https://github.com/bijubayarea/terraform-eks-s3-irsa
 
