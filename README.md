@@ -81,7 +81,7 @@ This Repo : https://github.com/bijubayarea/terraform-eks-s3-irsa
 - Add your roles, and account ID's to the variables.tf
 - Add your pre-existing S3 State bucket to main.tf
 
-- Run `terraform init src/`
+- Run `cd src; terraform init`
 Which will initialize your workspace and pull any providers needed such as AWS and the Kubernetes providers.
 
 Then run a terraform plan `terraform plan -var 'env=test' src/`
@@ -102,18 +102,29 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
 
 ## Kubernetes Testing
 To deploy the demo app to test IRSA ability run:
-`kubectl apply -f demo_irsa_app/ --dry-run=client`
+`kubectl apply -f demo_irsa_app/demo_app.yaml --dry-run=client`
 if the dry run looks ok go ahead and apply it.
-`kubectl apply -f demo_irsa_app/`
+`kubectl apply -f demo_irsa_app/demo_app.yaml`
 
 Once deployed you can describe the deployment, service account, etc and see how they are linked up.
 
 
 ```hcl
-      kubectl logs aws-cli-64597bcbbf-j6npn -c aws-cli
-      2022-10-19 22:46:38 bijubayarea-s3-irsa-backend
-      2022-10-19 15:35:07 bijubayarea-s3-remote-backend-deadbeef
-      2022-10-20 16:24:51 bijubayarea-s3-test 
+      $ k get deploy -n irsa-s3-ns
+        NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+        aws-cli   1/1     1            1           65s 
+        
+        $ k get pod -n irsa-s3-ns
+        NAME                       READY   STATUS    RESTARTS   AGE
+        aws-cli-7cb595d468-sl5ln   1/1     Running   0          78s
+               
+        $ k logs -n aws-cli aws-cli-7cb595d468-sl5ln -c aws-cli
+        Error from server (NotFound): namespaces "aws-cli" not found      
+        
+        $ k logs -n irsa-s3-ns aws-cli-7cb595d468-sl5ln -c aws-cli
+        2022-10-19 22:46:38 bijubayarea-s3-irsa-backend
+        2022-10-19 15:35:07 bijubayarea-s3-remote-backend-deadbeef
+        2022-10-20 18:40:32 bijubayarea-s3-test 
 
       ```
 
