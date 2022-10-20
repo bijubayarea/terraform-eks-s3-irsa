@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-cli
+  namespace: default
+  labels:
+    app: aws-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: aws-cli
+  template:
+    metadata:
+      labels:
+        app: aws-cli
+    spec:
+      # This where you call the SA to assign to the Pods.
+      serviceAccountName: s3-policy
+
+      initContainers:
+      - name: aws-cli
+        image: amazon/aws-cli
+        command: ["/bin/sh", "-c"]
+        args: 
+          - aws s3 ls
+          - aws s3 cp hello.txt s3://bijubayarea-s3-test/
+          - aws s3 cp s3://bijubayarea-s3-test/hello.txt -
+
+      containers:    
+      - name: nginx  
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
