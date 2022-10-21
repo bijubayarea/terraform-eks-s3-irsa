@@ -17,8 +17,8 @@ To configure EKS, OpenID Connect (OIDC) provider, IAM Roles and service accounts
 - create IAM policy to read this private S3 bucket
 - create IAM Identity provider with EKS OIDC provider with audience=sts.awsamazon.com
 - create IAM Role and attach this IAM S3 Policy
-- Create a Service Account with above IAM Role ARN in annotation section of k8s SA (argoCD - https://github.com/bijubayarea/argocd-eks-pod-s3-access)
-- use the Service Account in a pod to access the S3 bucket (argoCD - https://github.com/bijubayarea/argocd-eks-pod-s3-access)
+- Create a Service Account with above IAM Role ARN in annotation section of k8s SA (https://github.com/bijubayarea/terraform-eks-s3-irsa)
+- use the Service Account in a pod to access the S3 bucket (https://github.com/bijubayarea/terraform-eks-s3-irsa)
 
 # Advantages
 The IAM roles for service accounts feature provides the following benefits:
