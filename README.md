@@ -26,7 +26,8 @@ The IAM roles for service accounts feature provides the following benefits:
 (1) Least privilege- By using the IAM roles for service accounts feature, you no longer need to provide extended permissions to the worker node IAM role so that pods on that node can call AWS APIs. You can scope IAM permissions to a service account, and only pods that use that service account have access to those permissions.
 
 (2) Without IRSA, all worker nodes where the pods can be scheduled, should be provided access to AWS service. This is because pods can be
-    scheduled dynamically on all the relevant  worker nodes based on their toleration/node affinity rules
+    scheduled dynamically on all the relevant  worker nodes based on their toleration/node affinity rules. This creates broad privelage for 
+    all pods on all the worker nodes, access to the AWS service.
 
 (3) Credential isolation- A container can only retrieve credentials for the IAM role that is associated with the service account to which it belongs. A container never has access to credentials that are intended for another container that belongs to another pod.
 
