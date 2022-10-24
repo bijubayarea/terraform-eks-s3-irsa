@@ -24,6 +24,7 @@ spec:
         command: ["/bin/sh", "-c"]
         args: 
           - aws s3 ls
+          - sleep 1d
           #- touch hello.txt
           #- aws s3 cp hello.txt s3://bijubayarea-s3-test/
           #- aws s3 cp s3://bijubayarea-s3-test/hello.txt -
