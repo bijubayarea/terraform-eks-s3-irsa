@@ -247,8 +247,12 @@ upload file to non-owned S3 bucket(`s3://bijubayarea-s3-test-non-owner`) from PO
 
 ## Tear Down
 
-First empty your s3 buckets.
-$ k -n irsa-s3-ns  exec aws-cli-66fbd888cc-28jk5 -- sh -c 'aws s3 rm  s3://bijubayarea-s3-test-owner/hello.txt'
-delete: s3://bijubayarea-s3-test-owner/hello.txt
+Delete any object in s3 buckets. Even if not deleted it is OK, since S3 buckets are provisioned with `force_destroy = true`
 
-`terraform -chdir=src destroy -var 'env=test'`
+ ```hcl
+    $ k -n irsa-s3-ns  exec aws-cli-66fbd888cc-28jk5 -- sh -c 'aws s3 rm  s3://bijubayarea-s3-test-owner/hello.txt'
+    delete: s3://bijubayarea-s3-test-owner/hello.txt
+
+     `terraform -chdir=src destroy -var 'env=test'`   
+
+  ```
