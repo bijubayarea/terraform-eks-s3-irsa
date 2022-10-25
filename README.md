@@ -137,7 +137,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
           aws-cli-6d86899bb5-s49r9   1/1     Running   0          40m
                  
  
-        ```
+  ```
   
   
   ```hcl
@@ -148,7 +148,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
         "Arn": "arn:aws:sts::427234555883:assumed-role/staging-eks-1N3Y9646-s3-policy-role/botocore-session-1666715908"
 }    
               
-         ```
+  ```
   
   
   Display env varaible injected to pod by mutating webhooks (from SA annotation)
@@ -168,7 +168,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
         AWS_REGION=us-west-2
         AWS_STS_REGIONAL_ENDPOINTS=regional
   
-         ```
+  ```
 
   upload a file to S3 bucket=bijubayarea-s3-test-owner
   
@@ -186,9 +186,9 @@ upload: ./hello.txt to s3://bijubayarea-s3-test-owner/hello.txt
 2022-10-25 17:12:14        117 hello.txt
 
   
-         ```
+  ```
 
-### BAD scenario-1
+## BAD scenario-1
 
 upload file to non-owned S3 bucket from POD SA
 
@@ -205,9 +205,9 @@ upload file to non-owned S3 bucket from POD SA
        An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied
        command terminated with exit code 254
 
-       ```
+  ```
 
-### BAD scenario-2
+## BAD scenario-2
 
  Change deployment ServiceAccount=default and test again
  Pod will assume Node Iam role.
@@ -231,7 +231,7 @@ upload file to non-owned S3 bucket from POD SA
        An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied
        command terminated with exit code 254
                        
-       ```
+  ```
 
 ## Tear Down
 
