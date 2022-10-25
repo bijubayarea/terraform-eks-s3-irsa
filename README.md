@@ -151,7 +151,20 @@ Once deployed you can describe the deployment, service account, etc and see how 
         
         $ aws sts get-caller-identity
         
-      ```
+       ```
+
+
+Display env varaible injected to pod by mutating webhooks (from SA annotation)
+
+```hcl
+      $ k exec -it aws-cli-7cb595d468-sl5ln -- bash
+        
+        
+        $ env
+        $ echo $AWS_ROLE_ARN
+        $ echo $AWS_WEB_IDENTITY_TOKEN_FILE
+        
+       ```
 
 Change ServiceAccount=default and test again
 Pod will assume Node Iam role.
