@@ -125,6 +125,8 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
   `kubectl apply -f demo_irsa_app/demo_app.yaml`
   
   Once deployed you can describe the deployment, service account, etc and see how they are linked up.
+
+  pod with SA=s3-policy get assigned IAM_ROLE="arn:aws:sts::427234555883:assumed-role/staging-eks-1N3Y9646-s3-policy-role/botocore-session-1666715908"
   
   
   ```hcl
@@ -179,18 +181,18 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
       Testing s3 bucket fine-grained access by IAM_ROLE=arn:aws:iam::427234555883:role/staging-eks-1N3Y9646-s3-policy-role   
 
     $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-s49r9 -- sh -c 'aws s3 cp hello.txt s3://bijubayarea-s3-test-owner/'
-upload: ./hello.txt to s3://bijubayarea-s3-test-owner/hello.txt  
+    upload: ./hello.txt to s3://bijubayarea-s3-test-owner/hello.txt  
 
 
      $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-hqb7c -- sh -c 'aws s3 ls s3://bijubayarea-s3-test-owner/'
-2022-10-25 17:12:14        117 hello.txt
+     2022-10-25 17:12:14        117 hello.txt
 
   
   ```
 
 ## BAD scenario-1
 
-upload file to non-owned S3 bucket from POD SA
+upload file to non-owned S3 bucket(s3://bijubayarea-s3-test-non-owner) from POD SA
 
  
  ```hcl
@@ -209,8 +211,9 @@ upload file to non-owned S3 bucket from POD SA
 
 ## BAD scenario-2
 
- Change deployment ServiceAccount=default and test again
- Pod will assume Node Iam role.
+ Change deployment to `ServiceAccount=default` and test again.
+ Pod will assume Node Iam role and will not have access to S3 bucket(s3://bijubayarea-s3-test-owner/)
+
  `kubectl apply -f demo_irsa_app/demo_app.yaml`
  
  ```hcl
