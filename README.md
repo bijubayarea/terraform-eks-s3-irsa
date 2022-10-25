@@ -127,7 +127,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
   
   Once deployed you can describe the deployment, service account, etc and see how they are linked up.
 
-  pod with SA=s3-policy get assigned IAM_ROLE="arn:aws:sts::427234555883:assumed-role/staging-eks-1N3Y9646-s3-policy-role/botocore-session-1666715908"
+  pod with SA=s3-policy get assigned `IAM_ROLE="arn:aws:sts::427234555883:assumed-role/staging-eks-1N3Y9646-s3-policy-role/botocore-session-1666715908"`
   
   
   ```hcl
@@ -142,7 +142,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
  
   ```
   
-  show assumed Role
+  show assumed Role.
   show JSON WebToken details (JWT)
   ```hcl
         $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c 'aws sts get-caller-identity'
@@ -221,7 +221,7 @@ upload file to non-owned S3 bucket(`s3://bijubayarea-s3-test-non-owner`) from PO
 ## BAD scenario-2
 
  Change deployment to `ServiceAccount=default` and test again.
- Pod will assume Node Iam role and will not have access to S3 bucket(s3://bijubayarea-s3-test-owner/)
+ Pod will assume `Node` Iam role and will not have access to S3 bucket(`s3://bijubayarea-s3-test-owner/`)
 
  `kubectl apply -f demo_irsa_app/demo_app.yaml`
  
