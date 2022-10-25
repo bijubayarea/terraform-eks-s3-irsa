@@ -17,20 +17,21 @@ spec:
     spec:
       # This where you call the SA to assign to the Pods.
       serviceAccountName: s3-policy
+      #serviceAccountName: default
 
-      initContainers:
+      containers:
       - name: aws-cli
         image: amazon/aws-cli
         command: ["/bin/sh", "-c"]
         args: 
-          - aws s3 ls
           - sleep 1d
+          #- aws s3 ls
           #- touch hello.txt
           #- aws s3 cp hello.txt s3://bijubayarea-s3-test/
           #- aws s3 cp s3://bijubayarea-s3-test/hello.txt -
 
-      containers:    
-      - name: nginx  
-        image: nginx:1.14.2
-        ports:
-        - containerPort: 80
+#      containers:    
+#      - name: nginx  
+#        image: nginx:1.14.2
+#        ports:
+#        - containerPort: 80
