@@ -143,7 +143,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
   ```
   
   show assumed Role
-  show HSON WebToken details (JWT)
+  show JSON WebToken details (JWT)
   ```hcl
         $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c 'aws sts get-caller-identity'
 {    
@@ -160,7 +160,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
 
   ![6](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/JWT_decode.png)
 
-  
+
   
   Display env varaible injected to pod by mutating webhooks (from SA annotation)
   
