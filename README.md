@@ -119,7 +119,8 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
 ## Kubernetes Testing
 
 ### GOOD Scenario
-  To deploy the demo app with SA=s3-policy to test IRSA ability run:
+  To deploy the demo app with SA=s3-policy to test IRSA ability.
+   Run:
   `kubectl apply -f demo_irsa_app/demo_app.yaml --dry-run=client`
   if the dry run looks ok go ahead and apply it.
   `kubectl apply -f demo_irsa_app/demo_app.yaml`
@@ -141,7 +142,8 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
  
   ```
   
-  
+  show assumed Role
+  show HSON WebToken details (JWT)
   ```hcl
         $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c 'aws sts get-caller-identity'
 {    
@@ -149,8 +151,15 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
         "Account": "427234555883",
         "Arn": "arn:aws:sts::427234555883:assumed-role/staging-eks-1N3Y9646-s3-policy-role/botocore-session-1666715908"
 }    
-              
+      $ k -n irsa-s3-ns get secrets s3-policy-token-5jrd8  -o jsonpath='{.data.token}' | base64 -d
+        eyJhbGciOiJSUzI1NiIsImtpZCI6ImJYVGdrNXVMX3lwdzE1R2pjMGViclhuTUI1cmliV2VmOHV0ZzU3ck8ySm8ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJpcnNhLXMzLW5zIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6InMzLXBvbGljeS10b2tlbi01anJkOCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJzMy1wb2xpY3kiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI3YTM4M2UxYi0wMDU4LTQ3ZWItYWM0MS0yOWFkMGQ2NjE5NDEiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6aXJzYS1zMy1uczpzMy1wb2xpY3kifQ.pF1QzSEbZxVBXzfUzXwxacT7KEUcQkdHw6wx8713KZGu4HijVjBSPEKFzqEEUQIVPivaKePh8qM8JV3tkjNdIJdo8L2FrTIx-y_FnMmMiDOc4b_RThU7Anpm74t0ouW8OzoFnsIQ6BObldyVdhR4NAofuoMhu45GqLgHkDtqC4p1XCilSN8RUrZ21jJD0AIaLMKYwrFNFBMSRGJ3mSBeh8IjcO3KoFD9NSPpSiVuphgpa7sjWRH2Ktfvs0tXnlDA5uP9Gztr6mwWZvPZiNEKSCRv10dDnsqb5b8nBJmp90d7swS5RNoPiY2MblqAVkqfzG-MH-B7OkdIGf0bBA0sDQ
+
   ```
+  
+  JWT Token decoded
+
+  ![6](https://github.com/bijubayarea/terraform-eks-s3-irsa/blob/main/images/JWT_decode.png)
+
   
   
   Display env varaible injected to pod by mutating webhooks (from SA annotation)
@@ -172,7 +181,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
   
   ```
 
-  upload a file to S3 bucket=bijubayarea-s3-test-owner
+  upload a file to S3 bucket=`bijubayarea-s3-test-owner`
   
   ```hcl
      $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-s49r9 -- sh -c 'echo "Testing s3 bucket fine-grained access by IAM_ROLE=$AWS_ROLE_ARN" > hello.txt'
@@ -192,7 +201,7 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
 
 ## BAD scenario-1
 
-upload file to non-owned S3 bucket(s3://bijubayarea-s3-test-non-owner) from POD SA
+upload file to non-owned S3 bucket(`s3://bijubayarea-s3-test-non-owner`) from POD SA
 
  
  ```hcl
