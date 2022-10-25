@@ -145,6 +145,25 @@ Once deployed you can describe the deployment, service account, etc and see how 
       ```
 
 
+```hcl
+      $ k exec -it aws-cli-7cb595d468-sl5ln -- bash
+        
+        
+        $ aws sts get-caller-identity
+        
+      ```
+
+Change ServiceAccount=default and test again
+Pod will assume Node Iam role.
+
+```hcl
+      $ k exec -it aws-cli-7cb595d468-sl5ln -- bash
+        
+        
+        $ aws sts get-caller-identity
+        
+      ```
+
 ## Tear Down
 First empty your s3 bucket.
 `terraform destroy -var 'env=test' src/`
