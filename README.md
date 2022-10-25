@@ -97,12 +97,12 @@ This Repo : https://github.com/bijubayarea/terraform-eks-s3-irsa
 - Add your roles, and account ID's to the variables.tf
 - Add your pre-existing S3 State bucket to main.tf
 
-- Run `cd src; terraform init`
+- Run `terraform -chdir=src init`
 Which will initialize your workspace and pull any providers needed such as AWS and the Kubernetes providers.
 
-Then run a terraform plan `terraform plan -var 'env=test' src/`
+Then run a terraform plan `terraform -chdir=src plan -var 'env=test'`
 
-If looks ok go ahead and run the apply `terraform apply -var 'env=test' src/`
+If looks ok go ahead and run the apply `terraform -chdir=src apply -var 'env=test'`
 
 Answer with yes when asked if you want to apply. It will take a bit to provision the VPC, related resources, the EKS cluster and related resources. Once done you need to setup your local kubectl for access by running `aws eks update-kubeconfig --region us-west-2 --name aws-vpc` or `aws eks update-kubeconfig --region us-west-2 --name aws-vpc --role arn:aws:iam::<account_id>:role/<name>` with whatever role you used to create the cluster (defined in variables).
 
@@ -117,66 +117,126 @@ Answer with yes when asked if you want to apply. It will take a bit to provision
 
 
 ## Kubernetes Testing
-To deploy the demo app to test IRSA ability run:
-`kubectl apply -f demo_irsa_app/demo_app.yaml --dry-run=client`
-if the dry run looks ok go ahead and apply it.
-`kubectl apply -f demo_irsa_app/demo_app.yaml`
 
-Once deployed you can describe the deployment, service account, etc and see how they are linked up.
-
-
-```hcl
-      $ k get deploy -n irsa-s3-ns
+### GOOD Scenario
+  To deploy the demo app with SA=s3-policy to test IRSA ability run:
+  `kubectl apply -f demo_irsa_app/demo_app.yaml --dry-run=client`
+  if the dry run looks ok go ahead and apply it.
+  `kubectl apply -f demo_irsa_app/demo_app.yaml`
+  
+  Once deployed you can describe the deployment, service account, etc and see how they are linked up.
+  
+  
+  ```hcl
+        $ kubectl get deploy -n irsa-s3-ns
         NAME      READY   UP-TO-DATE   AVAILABLE   AGE
-        aws-cli   1/1     1            1           65s 
-        
-        $ k get pod -n irsa-s3-ns
-        NAME                       READY   STATUS    RESTARTS   AGE
-        aws-cli-7cb595d468-sl5ln   1/1     Running   0          78s
-               
-        $ k logs -n aws-cli aws-cli-7cb595d468-sl5ln -c aws-cli
-        Error from server (NotFound): namespaces "aws-cli" not found      
-        
-        $ k logs -n irsa-s3-ns aws-cli-7cb595d468-sl5ln -c aws-cli
-        2022-10-19 22:46:38 bijubayarea-s3-irsa-backend
-        2022-10-19 15:35:07 bijubayarea-s3-remote-backend-deadbeef
-        2022-10-20 18:40:32 bijubayarea-s3-test 
+        aws-cli   1/1     1            1           39m5s 
+          
+          $ kubectl get  pod -n irsa-s3-ns
+          NAME                       READY   STATUS    RESTARTS   AGE
+          aws-cli-6d86899bb5-s49r9   1/1     Running   0          40m
+                 
+ 
+        ```
+  
+  
+  ```hcl
+        $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c 'aws sts get-caller-identity'
+{    
+        "UserId": "AROAWG6JJ67VTKONEH2XR:botocore-session-1666715908",
+        "Account": "427234555883",
+        "Arn": "arn:aws:sts::427234555883:assumed-role/staging-eks-1N3Y9646-s3-policy-role/botocore-session-1666715908"
+}    
+              
+         ```
+  
+  
+  Display env varaible injected to pod by mutating webhooks (from SA annotation)
+  
+  ```hcl
+        $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c 'echo $AWS_ROLE_ARN'
+        arn:aws:iam::427234555883:role/staging-eks-1N3Y9646-s3-policy-role
+  
+        $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c 'echo $AWS_WEB_IDENTITY_TOKEN_FILE'
+        /var/run/secrets/eks.amazonaws.com/serviceaccount/token      
 
-      ```
+
+        $ k -n irsa-s3-ns exec aws-cli-6d86899bb5-s49r9 -- sh -c env | grep AWS
+        AWS_ROLE_ARN=arn:aws:iam::427234555883:role/staging-eks-1N3Y9646-s3-policy-role
+        AWS_WEB_IDENTITY_TOKEN_FILE=/var/run/secrets/eks.amazonaws.com/serviceaccount/token
+        AWS_DEFAULT_REGION=us-west-2
+        AWS_REGION=us-west-2
+        AWS_STS_REGIONAL_ENDPOINTS=regional
+  
+         ```
+
+  upload a file to S3 bucket=bijubayarea-s3-test-owner
+  
+  ```hcl
+     $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-s49r9 -- sh -c 'echo "Testing s3 bucket fine-grained access by IAM_ROLE=$AWS_ROLE_ARN" > hello.txt'
+
+     $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-s49r9 -- sh -c 'cat hello.txt'
+      Testing s3 bucket fine-grained access by IAM_ROLE=arn:aws:iam::427234555883:role/staging-eks-1N3Y9646-s3-policy-role   
+
+    $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-s49r9 -- sh -c 'aws s3 cp hello.txt s3://bijubayarea-s3-test-owner/'
+upload: ./hello.txt to s3://bijubayarea-s3-test-owner/hello.txt  
 
 
-```hcl
-      $ k exec -it aws-cli-7cb595d468-sl5ln -- bash
-        
-        
-        $ aws sts get-caller-identity
-        
+     $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-hqb7c -- sh -c 'aws s3 ls s3://bijubayarea-s3-test-owner/'
+2022-10-25 17:12:14        117 hello.txt
+
+  
+         ```
+
+### BAD scenario-1
+
+upload file to non-owned S3 bucket from POD SA
+
+ 
+ ```hcl
+       $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-s49r9 -- sh -c 'aws s3 cp hello.txt s3://bijubayarea-s3-test-non-owner/'
+        upload failed: ./hello.txt to s3://bijubayarea-s3-test-non-owner/hello.txt An error occurred (AccessDenied) when calling the PutObject operation: Access Denied
+        command terminated with exit code 1
+
+
+         
+      $ k exec -n irsa-s3-ns aws-cli-6d86899bb5-hqb7c -- sh -c 'aws s3 ls s3://bijubayarea-s3-test-non-owner/'
+
+       An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied
+       command terminated with exit code 254
+
        ```
 
+### BAD scenario-2
 
-Display env varaible injected to pod by mutating webhooks (from SA annotation)
+ Change deployment ServiceAccount=default and test again
+ Pod will assume Node Iam role.
+ `kubectl apply -f demo_irsa_app/demo_app.yaml`
+ 
+ ```hcl
+       $ k -n irsa-s3-ns exec aws-cli-68876cc4d5-hldfx -- sh -c 'aws sts get-caller-identity'
+       {
+           "UserId": "AROAWG6JJ67VTM6CJBXMB:i-09c7e2b0b7b5f671a",
+           "Account": "427234555883",
+           "Arn": "arn:aws:sts::427234555883:assumed-role/node-group-1-eks-node-group-20221025152035508900000008/i-09c7e2b0b7b5f671a"
+       }
 
-```hcl
-      $ k exec -it aws-cli-7cb595d468-sl5ln -- bash
-        
-        
-        $ env
-        $ echo $AWS_ROLE_ARN
-        $ echo $AWS_WEB_IDENTITY_TOKEN_FILE
-        
+
+       $ k -n irsa-s3-ns exec aws-cli-68876cc4d5-hldfx -- sh -c env | grep AWS
+       <NO ENV varaiable SET>
+
+
+       $ k exec -n irsa-s3-ns aws-cli-68876cc4d5-hldfx -- sh -c 'aws s3 ls s3://bijubayarea-s3-test-owner/'
+
+       An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied
+       command terminated with exit code 254
+                       
        ```
-
-Change ServiceAccount=default and test again
-Pod will assume Node Iam role.
-
-```hcl
-      $ k exec -it aws-cli-7cb595d468-sl5ln -- bash
-        
-        
-        $ aws sts get-caller-identity
-        
-      ```
 
 ## Tear Down
-First empty your s3 bucket.
-`terraform destroy -var 'env=test' src/`
+
+First empty your s3 buckets.
+$ k -n irsa-s3-ns  exec aws-cli-66fbd888cc-28jk5 -- sh -c 'aws s3 rm  s3://bijubayarea-s3-test-owner/hello.txt'
+delete: s3://bijubayarea-s3-test-owner/hello.txt
+
+`terraform -chdir=src destroy -var 'env=test'`
